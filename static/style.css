@@ -1,0 +1,100 @@
+body {
+    margin: 0;
+    font-family: 'Georgia', serif;
+    background: linear-gradient(120deg, #1f2937, #4b5563, #111827);
+    height: 100vh;
+}
+
+/* Center layout */
+.container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Card */
+.card {
+    background: rgba(255, 255, 255, 0.95);
+    width: 520px;
+    padding: 45px;
+    border-radius: 16px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+    text-align: center;
+}
+
+/* Title */
+.title {
+    font-size: 30px;
+    margin-bottom: 25px;
+    color: #111827;
+    letter-spacing: 1px;
+}
+
+/* Search bar */
+input {
+    width: 70%;
+    padding: 14px;
+    border-radius: 30px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    margin-bottom: 18px;
+}
+
+/* Button */
+button {
+    background: #111827;
+    color: white;
+    padding: 13px 28px;
+    border: none;
+    border-radius: 30px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #000;
+}
+
+/* Results */
+.results {
+    margin-top: 30px;
+}
+
+.results h2 {
+    margin-bottom: 15px;
+    color: #111827;
+}
+
+/* List */
+.results ul {
+    list-style: none;
+    padding: 0;
+}
+
+.results li {
+    background: #f3f4f6;
+    margin: 12px 0;
+    padding: 14px;
+    border-radius: 10px;
+    text-align: left;
+    transition: 0.2s;
+}
+
+.results li:hover {
+    background: #e5e7eb;
+}
+
+/* Song name */
+.song-name {
+    font-weight: bold;
+    font-size: 16px;
+    color: #111827;
+}
+
+/* Artist */
+.artist-name {
+    font-size: 13px;
+    color: #6b7280;
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Song Recommendation System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+
+        <h1 class="title">🎵 Song Recommendation System</h1>
+
+        <form method="POST">
+            <input 
+                type="text"
+                name="song"
+                list="songs_list"
+                placeholder="Search song or artist..."
+                value="{{ selected_song if selected_song else '' }}"
+                required
+            >
+
+            <datalist id="songs_list">
+                {% for s in songs %}
+                    <option value="{{ s.track_name }} — {{ s.artists }}">
+                {% endfor %}
+            </datalist>
+
+            <button type="submit">Recommend</button>
+        </form>
+
+        {% if recommendations %}
+        <div class="results">
+            <h2>Recommended Songs</h2>
+
+            <ul>
+                {% for rec in recommendations %}
+                <li>
+                    <div class="song-name">{{ rec.track_name }}</div>
+                    <div class="artist-name">{{ rec.artists }}</div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+</body>
+</html>
