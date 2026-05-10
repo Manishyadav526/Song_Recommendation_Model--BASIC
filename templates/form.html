@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Select Your Song | MusicAI</title>
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div class="form-page">
+
+        <!-- Page Heading -->
+        <h1>🎧 Choose Your Favorite Song</h1>
+
+
+        <!-- =========================
+             Genre Selection Form
+        ========================== -->
+
+        <form action="/songs" method="POST" class="form-card">
+
+            <label for="genre">Select Genre</label>
+
+            <select name="genre" id="genre" required>
+
+                <option disabled selected>
+                    Choose a Genre
+                </option>
+
+                <!-- Genres from backend -->
+                {% for g in genres %}
+
+                <option
+                    value="{{ g }}"
+                    {% if g == selected_genre %}selected{% endif %}
+                >
+                    {{ g }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+            <button type="submit">
+                Load Songs
+            </button>
+
+        </form>
+
+
+        {% if songs %}
+
+        <!-- =========================
+             Song Selection Form
+        ========================== -->
+
+        <form action="/recommend" method="POST" class="form-card">
+
+            <!-- Hidden Inputs -->
+            <input
+                type="hidden"
+                name="genre"
+                value="{{ selected_genre }}"
+            >
+
+            <input
+                type="hidden"
+                name="song"
+                id="selectedSong"
+                required
+            >
+
+            <label for="search">
+                Search and Select Song
+            </label>
+
+
+            <!-- Search Input + Dropdown -->
+
+            <div class="search-box">
+
+                <input
+                    type="text"
+                    id="search"
+                    placeholder="🔍 Search your song..."
+                    autocomplete="off"
+                >
+
+                <ul id="dropdown" class="dropdown-list">
+
+                    {% for song in songs %}
+
+                    <li class="dropdown-item">
+                        {{ song }}
+                    </li>
+
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+
+
+            <button type="submit" class="recommend-btn">
+                🎵 Recommend Songs
+            </button>
+
+        </form>
+
+        {% endif %}
+
+
+        <!-- Back Button -->
+
+        <a href="/" class="back-btn">
+            ⬅ Back to Home
+        </a>
+
+    </div>
+
+
+    <!-- JavaScript -->
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Recommended Songs | MusicAI</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- =========================
+         Navbar
+    ========================== -->
+
+    <nav class="navbar">
+
+        <div class="logo">
+            🎧 MusicAI
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/form">Recommend</a></li>
+        </ul>
+
+    </nav>
+
+
+    <!-- =========================
+         Main Container
+    ========================== -->
+
+    <div class="container">
+
+        <!-- Page Title -->
+
+        <h1>
+            🎶 Recommended Songs
+        </h1>
+
+
+        <!-- Selected Song -->
+
+        <h2 class="selected-song">
+            Recommendations based on:
+            <span>{{ selected_song }}</span>
+        </h2>
+
+
+        <!-- Recommendation Cards -->
+
+        <div class="grid">
+
+            {% for song in recommendations %}
+
+            <div class="song-card">
+
+                <!-- Song Cover -->
+
+                <div class="img-box">
+
+                    <img
+                        src="{{ song['Cover Image'] }}"
+                        alt="Song Cover"
+                    >
+
+                    <!-- Play Overlay -->
+
+                    {% if song['iTunes Link'] %}
+
+                    <a
+                        href="{{ song['iTunes Link'] }}"
+                        target="_blank"
+                        class="overlay"
+                    >
+                        ▶ Play Song
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Song Information -->
+
+                <div class="song-info">
+
+                    <h3>
+                        {{ song['Track Name'] }}
+                    </h3>
+
+                    <p>
+                        {{ song['Artist(s)'] }}
+                    </p>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        <!-- Action Buttons -->
+
+        <div class="action-buttons">
+
+            <a href="/form" class="back-btn">
+                ⬅ Try Another Song
+            </a>
+
+            <a href="/" class="back-btn">
+                🏠 Back to Home
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- JavaScript -->
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+
+</html>
