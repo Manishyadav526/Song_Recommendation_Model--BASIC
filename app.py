@@ -58,11 +58,19 @@ genre_files = {
 # ----------------------
 
 def load_data(genre):
+
     df = joblib.load(genre_files[genre]["df"])
+
     sim = joblib.load(genre_files[genre]["sim"])
 
-    # Ensure dataframe and similarity matrix sizes match
+    # Reset dataframe index
     df = df.reset_index(drop=True)
+
+    # Convert similarity matrix to DataFrame if needed
+    if not isinstance(sim, pd.DataFrame):
+        sim = pd.DataFrame(sim)
+
+    # Match dataframe size with similarity matrix
     df = df.iloc[:sim.shape[0]]
 
     return df, sim
@@ -73,6 +81,7 @@ def load_data(genre):
 # ----------------------
 
 def get_itunes_link(track_name, artist_name):
+
     try:
         query = f"{track_name} {artist_name}"
 
@@ -95,6 +104,7 @@ def get_itunes_link(track_name, artist_name):
 
     except Exception as e:
         print(f"Error fetching iTunes link: {e}")
+
         return None
 
 
@@ -111,7 +121,7 @@ def recommend_songs(song_name, df, sim_matrix, top_n=5, max_per_artist=1):
         return pd.DataFrame()
 
     # Calculate similarity scores
-    sim_scores = list(enumerate(sim_matrix[idx]))
+    sim_scores = list(enumerate(sim_matrix.iloc[idx].values))
 
     # Sort songs based on similarity
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
@@ -125,19 +135,20 @@ def recommend_songs(song_name, df, sim_matrix, top_n=5, max_per_artist=1):
     for i, score in sim_scores:
 
         track = df.loc[i, 'Track Name']
+
         artist = df.loc[i, 'Artist(s)']
 
-        # Skip duplicate or same song
+        # Skip same or duplicate songs
         if track == song_name or track in seen_tracks:
             continue
 
-        # Main artist name
+        # Get main artist name
         artist_main = artist.split(",")[0].strip()
 
         if artist_main not in artist_count:
             artist_count[artist_main] = 0
 
-        # Limit recommendations from same artist
+        # Limit songs from same artist
         if artist_count[artist_main] >= max_per_artist:
             continue
 
@@ -147,7 +158,7 @@ def recommend_songs(song_name, df, sim_matrix, top_n=5, max_per_artist=1):
 
         artist_count[artist_main] += 1
 
-        # Stop when required recommendations are collected
+        # Stop after required recommendations
         if len(recommended_indices) >= top_n:
             break
 
@@ -161,7 +172,10 @@ def recommend_songs(song_name, df, sim_matrix, top_n=5, max_per_artist=1):
 
     # Add iTunes links
     recommendations['iTunes Link'] = recommendations.apply(
-        lambda x: get_itunes_link(x['Track Name'], x['Artist(s)']),
+        lambda x: get_itunes_link(
+            x['Track Name'],
+            x['Artist(s)']
+        ),
         axis=1
     )
 
@@ -175,12 +189,14 @@ def recommend_songs(song_name, df, sim_matrix, top_n=5, max_per_artist=1):
 # Landing Page
 @app.route('/')
 def home():
+
     return render_template('index.html')
 
 
 # Genre Selection Form
 @app.route('/form')
 def form():
+
     return render_template(
         'form.html',
         genres=list(genre_files.keys())
