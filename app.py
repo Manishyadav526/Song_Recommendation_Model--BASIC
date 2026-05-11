@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import joblib
 import pandas as pd
 import requests
 import os
+import numpy as np
 
 app = Flask(__name__)
 
@@ -14,7 +15,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DATA_FOLDER = os.path.join(BASE_DIR, "similarity_matrices")
 
-# Genre-wise dataset and similarity matrix paths
+# ----------------------
+# Genre-wise Dataset Paths
+# ----------------------
+
 genre_files = {
     "Bollywood": {
         "df": os.path.join(DATA_FOLDER, "bollywood_df.pkl"),
@@ -66,12 +70,15 @@ def load_data(genre):
     # Reset dataframe index
     df = df.reset_index(drop=True)
 
-    # Convert similarity matrix to DataFrame if needed
-    if not isinstance(sim, pd.DataFrame):
-        sim = pd.DataFrame(sim)
+    # Convert similarity matrix into NumPy array
+    if isinstance(sim, pd.DataFrame):
+        sim = sim.values
 
-    # Match dataframe size with similarity matrix
-    df = df.iloc[:sim.shape[0]]
+    elif not isinstance(sim, np.ndarray):
+        sim = np.array(sim)
+
+    # Match dataframe size
+    df = df.iloc[:len(sim)]
 
     return df, sim
 
@@ -83,6 +90,7 @@ def load_data(genre):
 def get_itunes_link(track_name, artist_name):
 
     try:
+
         query = f"{track_name} {artist_name}"
 
         url = "https://itunes.apple.com/search"
@@ -97,13 +105,15 @@ def get_itunes_link(track_name, artist_name):
 
         data = response.json()
 
-        if data.get('resultCount', 0) > 0:
-            return data['results'][0].get('trackViewUrl')
+        if data.get("resultCount", 0) > 0:
+
+            return data["results"][0].get("trackViewUrl")
 
         return None
 
     except Exception as e:
-        print(f"Error fetching iTunes link: {e}")
+
+        print(f"iTunes API Error: {e}")
 
         return None
 
@@ -115,16 +125,41 @@ def get_itunes_link(track_name, artist_name):
 def recommend_songs(song_name, df, sim_matrix, top_n=5, max_per_artist=1):
 
     try:
+
         idx = df[df['Track Name'] == song_name].index[0]
 
     except IndexError:
+
+        print(f"Song not found: {song_name}")
+
         return pd.DataFrame()
 
-    # Calculate similarity scores
-    sim_scores = list(enumerate(sim_matrix.iloc[idx].values))
+    # ----------------------
+    # Similarity Scores
+    # ----------------------
+
+    raw_scores = sim_matrix[idx]
+
+    sim_scores = []
+
+    for i, score in enumerate(raw_scores):
+
+        try:
+
+            score = float(score)
+
+            sim_scores.append((i, score))
+
+        except:
+
+            continue
 
     # Sort songs based on similarity
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sorted(
+        sim_scores,
+        key=lambda x: x[1],
+        reverse=True
+    )
 
     recommended_indices = []
 
@@ -134,21 +169,33 @@ def recommend_songs(song_name, df, sim_matrix, top_n=5, max_per_artist=1):
 
     for i, score in sim_scores:
 
-        track = df.loc[i, 'Track Name']
+        try:
 
-        artist = df.loc[i, 'Artist(s)']
+            track = df.loc[i, 'Track Name']
 
-        # Skip same or duplicate songs
-        if track == song_name or track in seen_tracks:
+            artist = df.loc[i, 'Artist(s)']
+
+        except Exception as e:
+
+            print(f"Data Error: {e}")
+
             continue
 
-        # Get main artist name
+        # Skip same song
+        if track == song_name:
+            continue
+
+        # Skip duplicate tracks
+        if track in seen_tracks:
+            continue
+
+        # Main artist name
         artist_main = artist.split(",")[0].strip()
 
         if artist_main not in artist_count:
             artist_count[artist_main] = 0
 
-        # Limit songs from same artist
+        # Limit songs per artist
         if artist_count[artist_main] >= max_per_artist:
             continue
 
@@ -158,11 +205,13 @@ def recommend_songs(song_name, df, sim_matrix, top_n=5, max_per_artist=1):
 
         artist_count[artist_main] += 1
 
-        # Stop after required recommendations
+        # Stop after top_n recommendations
         if len(recommended_indices) >= top_n:
             break
 
+    # Empty fallback
     if len(recommended_indices) == 0:
+
         return pd.DataFrame()
 
     recommendations = df.loc[
@@ -186,14 +235,14 @@ def recommend_songs(song_name, df, sim_matrix, top_n=5, max_per_artist=1):
 # Routes
 # ----------------------
 
-# Landing Page
+# Home Page
 @app.route('/')
 def home():
 
     return render_template('index.html')
 
 
-# Genre Selection Form
+# Form Page
 @app.route('/form')
 def form():
 
@@ -203,9 +252,13 @@ def form():
     )
 
 
-# Load Songs Based on Genre
-@app.route('/songs', methods=['POST'])
+# Load Songs
+@app.route('/songs', methods=['GET', 'POST'])
 def songs():
+
+    if request.method == 'GET':
+
+        return redirect('/form')
 
     genre = request.form.get('genre')
 
@@ -221,9 +274,13 @@ def songs():
     )
 
 
-# Generate Recommendations
-@app.route('/recommend', methods=['POST'])
+# Recommend Songs
+@app.route('/recommend', methods=['GET', 'POST'])
 def recommend():
+
+    if request.method == 'GET':
+
+        return redirect('/form')
 
     genre = request.form.get('genre')
 
@@ -249,4 +306,5 @@ def recommend():
 # ----------------------
 
 if __name__ == '__main__':
+
     app.run(debug=True)
